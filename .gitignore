@@ -1,0 +1,11 @@
+# Generated release packages
+*.zip
+
+# Local/editor files
+.DS_Store
+Thumbs.db
+*.tmp
+*.bak
+
+# PowerShell/session noise
+*.log
