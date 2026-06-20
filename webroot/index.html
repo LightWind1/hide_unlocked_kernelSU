@@ -1,0 +1,372 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hide Unlocked</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: #f6f7f9;
+      --panel: #ffffff;
+      --text: #17191f;
+      --muted: #666d7c;
+      --line: #dfe3eb;
+      --ok: #157f52;
+      --bad: #bb2f3b;
+      --warn: #936400;
+      --chip: #edf1f7;
+      --button: #1d5fd1;
+      --button-text: #ffffff;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #101216;
+        --panel: #191d24;
+        --text: #f1f3f7;
+        --muted: #a1a8b6;
+        --line: #303642;
+        --ok: #62d59b;
+        --bad: #ff7a86;
+        --warn: #e6bd56;
+        --chip: #262c36;
+        --button: #72a7ff;
+        --button-text: #07111f;
+      }
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 15px;
+      letter-spacing: 0;
+    }
+
+    main {
+      width: min(100%, 760px);
+      margin: 0 auto;
+      padding: 18px 14px 28px;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 22px;
+      line-height: 1.2;
+      font-weight: 720;
+    }
+
+    .meta {
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    button {
+      min-width: 44px;
+      min-height: 40px;
+      border: 0;
+      border-radius: 7px;
+      padding: 0 14px;
+      background: var(--button);
+      color: var(--button-text);
+      font: inherit;
+      font-weight: 650;
+    }
+
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .metric {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      padding: 12px;
+      min-width: 0;
+    }
+
+    .metric strong {
+      display: block;
+      font-size: 22px;
+      line-height: 1.1;
+    }
+
+    .metric span {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .section {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+      background: var(--panel);
+      margin-top: 10px;
+    }
+
+    .section-title {
+      padding: 11px 12px;
+      border-bottom: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: minmax(0, 1.25fr) minmax(88px, .65fr) 74px;
+      gap: 8px;
+      align-items: center;
+      padding: 11px 12px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .row:last-child {
+      border-bottom: 0;
+    }
+
+    .prop {
+      min-width: 0;
+      overflow-wrap: anywhere;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 13px;
+    }
+
+    .value {
+      min-width: 0;
+      overflow-wrap: anywhere;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .status {
+      justify-self: end;
+      border-radius: 999px;
+      padding: 4px 8px;
+      background: var(--chip);
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .ok {
+      color: var(--ok);
+    }
+
+    .bad {
+      color: var(--bad);
+    }
+
+    .warn {
+      color: var(--warn);
+    }
+
+    .foot {
+      margin: 12px 2px 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    @media (max-width: 520px) {
+      main {
+        padding: 14px 10px 22px;
+      }
+
+      .summary {
+        grid-template-columns: 1fr;
+      }
+
+      .row {
+        grid-template-columns: 1fr auto;
+      }
+
+      .value {
+        grid-column: 1 / -1;
+        grid-row: 2;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div>
+        <h1>Hide Unlocked</h1>
+        <div class="meta">KernelSU / SukiSU Ultra · v1.0</div>
+      </div>
+      <button id="refresh" type="button">刷新</button>
+    </header>
+
+    <section class="summary" aria-label="prop summary">
+      <div class="metric"><strong id="ok-count">0</strong><span>符合预期</span></div>
+      <div class="metric"><strong id="bad-count">0</strong><span>需要关注</span></div>
+      <div class="metric"><strong id="all-count">0</strong><span>检测项目</span></div>
+    </section>
+
+    <div id="content"></div>
+    <div class="foot" id="message">正在读取属性...</div>
+  </main>
+
+  <script type="module">
+    const groups = [
+      {
+        title: "启动与 AVB",
+        props: [
+          ["ro.boot.flash.locked", "1"],
+          ["ro.boot.vbmeta.device_state", "locked"],
+          ["ro.boot.verifiedbootstate", "green"],
+          ["ro.boot.veritymode", "enforcing"],
+          ["ro.boot.verifiedmode", "enforcing"],
+          ["vendor.boot.vbmeta.device_state", "locked"],
+          ["vendor.boot.verifiedbootstate", "green"],
+          ["vendor.boot.veritymode", "enforcing"]
+        ]
+      },
+      {
+        title: "构建与调试",
+        props: [
+          ["ro.build.tags", "release-keys"],
+          ["ro.build.type", "user"],
+          ["ro.debuggable", "0"],
+          ["ro.secure", "1"]
+        ]
+      },
+      {
+        title: "OEM 与保修",
+        props: [
+          ["sys.oem_unlock_allowed", "0"],
+          ["ro.oem_unlock_supported", "1"],
+          ["ro.boot.warranty_bit", "0"],
+          ["ro.vendor.boot.warranty_bit", "0"],
+          ["ro.vendor.warranty_bit", "0"],
+          ["ro.warranty_bit", "0"],
+          ["ro.secureboot.devicelock", "1"],
+          ["ro.secureboot.lockstate", "locked"]
+        ]
+      },
+      {
+        title: "启动模式",
+        props: [
+          ["ro.bootmode", "unknown"],
+          ["ro.boot.mode", "unknown"],
+          ["vendor.boot.mode", "unknown"]
+        ]
+      }
+    ];
+
+    const content = document.querySelector("#content");
+    const message = document.querySelector("#message");
+    const okCount = document.querySelector("#ok-count");
+    const badCount = document.querySelector("#bad-count");
+    const allCount = document.querySelector("#all-count");
+    const refresh = document.querySelector("#refresh");
+
+    let execApi = null;
+
+    async function loadApi() {
+      if (execApi) return execApi;
+      const api = await import("kernelsu");
+      execApi = api.exec;
+      return execApi;
+    }
+
+    function shellQuote(value) {
+      return "'" + value.replace(/'/g, "'\\''") + "'";
+    }
+
+    function escapeHtml(value) {
+      return value.replace(/[&<>"']/g, (char) => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+      })[char]);
+    }
+
+    async function getProp(prop) {
+      const exec = await loadApi();
+      const result = await exec("getprop " + shellQuote(prop));
+      if (result.errno && result.errno !== 0) {
+        throw new Error(result.stderr || "getprop failed");
+      }
+      return (result.stdout || "").trim();
+    }
+
+    function row(prop, expected, actual) {
+      const matches = actual === expected;
+      const missing = actual === "";
+      const statusText = matches ? "正常" : missing ? "空值" : "异常";
+      const statusClass = matches ? "ok" : missing ? "warn" : "bad";
+      return `
+        <div class="row">
+          <div class="prop">${escapeHtml(prop)}</div>
+          <div class="value">${escapeHtml(actual || "(empty)")}</div>
+          <div class="status ${statusClass}">${statusText}</div>
+        </div>
+      `;
+    }
+
+    async function render() {
+      refresh.disabled = true;
+      message.textContent = "正在读取属性...";
+      let ok = 0;
+      let bad = 0;
+      const html = [];
+
+      try {
+        for (const group of groups) {
+          html.push(`<section class="section"><div class="section-title">${group.title}</div>`);
+          for (const [prop, expected] of group.props) {
+            const actual = await getProp(prop);
+            if (actual === expected) ok += 1;
+            else bad += 1;
+            html.push(row(prop, expected, actual));
+          }
+          html.push("</section>");
+        }
+
+        content.innerHTML = html.join("");
+        okCount.textContent = String(ok);
+        badCount.textContent = String(bad);
+        allCount.textContent = String(ok + bad);
+        message.textContent = "最后刷新：" + new Date().toLocaleString();
+      } catch (error) {
+        content.innerHTML = "";
+        okCount.textContent = "0";
+        badCount.textContent = "0";
+        allCount.textContent = String(groups.reduce((sum, group) => sum + group.props.length, 0));
+        message.textContent = "无法读取属性，请从支持 WebUI 的 KernelSU/SukiSU Ultra Manager 打开。";
+      } finally {
+        refresh.disabled = false;
+      }
+    }
+
+    refresh.addEventListener("click", render);
+    render();
+  </script>
+</body>
+</html>

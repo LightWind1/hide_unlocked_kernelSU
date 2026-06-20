@@ -1,4 +1,4 @@
-# Hide Locked for KernelSU / SukiSU Ultra
+# Hide Unlocked for KernelSU / SukiSU Ultra
 
 This module masks common Android bootloader and verified-boot properties so
 apps that only read Android system properties see a locked, green, user build.
@@ -36,6 +36,11 @@ Limitations:
 1. Run `powershell -ExecutionPolicy Bypass -File .\pack.ps1`.
 2. Install the zip from KernelSU Manager, SukiSU Ultra, or a compatible manager.
 3. Reboot.
+
+## WebUI
+
+Open this module from a WebUI-capable KernelSU/SukiSU Ultra manager to view
+the current value and match status for each masked property.
 
 ## Verify
 

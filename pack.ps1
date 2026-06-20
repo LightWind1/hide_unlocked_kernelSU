@@ -17,7 +17,11 @@ $RequiredFiles = @(
     "README.md"
 )
 
-foreach ($File in $RequiredFiles) {
+$RequiredWebFiles = @(
+    "webroot/index.html"
+)
+
+foreach ($File in ($RequiredFiles + $RequiredWebFiles)) {
     if (-not (Test-Path -LiteralPath (Join-Path $Root $File) -PathType Leaf)) {
         throw "Missing required module file: $File"
     }
@@ -46,7 +50,30 @@ if (Test-Path -LiteralPath $OutputPath) {
     throw "Output already exists: $OutputPath. Use -KeepExisting only when writing a different OutputDir."
 }
 
-Compress-Archive -Path $RequiredFiles -DestinationPath $OutputPath -CompressionLevel Optimal
+Add-Type -AssemblyName System.IO.Compression
+Add-Type -AssemblyName System.IO.Compression.FileSystem
+
+$Zip = [System.IO.Compression.ZipFile]::Open($OutputPath, [System.IO.Compression.ZipArchiveMode]::Create)
+try {
+    foreach ($File in $RequiredFiles) {
+        [System.IO.Compression.ZipFileExtensions]::CreateEntryFromFile(
+            $Zip,
+            (Join-Path $Root $File),
+            $File,
+            [System.IO.Compression.CompressionLevel]::Optimal
+        ) | Out-Null
+    }
+
+    [System.IO.Compression.ZipFileExtensions]::CreateEntryFromFile(
+        $Zip,
+        (Join-Path $Root "webroot/index.html"),
+        "webroot/index.html",
+        [System.IO.Compression.CompressionLevel]::Optimal
+    ) | Out-Null
+}
+finally {
+    $Zip.Dispose()
+}
 
 $Entries = [System.IO.Compression.ZipFile]::OpenRead($OutputPath)
 try {
@@ -58,6 +85,10 @@ finally {
 
 if ($EntryNames -notcontains "module.prop") {
     throw "Invalid package: module.prop is not at zip root."
+}
+
+if ($EntryNames -notcontains "webroot/index.html") {
+    throw "Invalid package: webroot/index.html is missing."
 }
 
 Write-Host "Created: $OutputPath"
