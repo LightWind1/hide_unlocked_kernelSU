@@ -36,9 +36,7 @@
       }
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
@@ -51,7 +49,7 @@
     }
 
     main {
-      width: min(100%, 760px);
+      width: min(100%, 820px);
       margin: 0 auto;
       padding: 18px 14px 28px;
     }
@@ -77,6 +75,13 @@
       font-size: 13px;
     }
 
+    .actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
     button {
       min-width: 44px;
       min-height: 40px;
@@ -88,6 +93,8 @@
       font: inherit;
       font-weight: 650;
     }
+
+    button:disabled { opacity: .48; }
 
     .summary {
       display: grid;
@@ -117,7 +124,7 @@
       font-size: 12px;
     }
 
-    .section {
+    .list {
       border: 1px solid var(--line);
       border-radius: 8px;
       overflow: hidden;
@@ -125,41 +132,28 @@
       margin-top: 10px;
     }
 
-    .section-title {
-      padding: 11px 12px;
-      border-bottom: 1px solid var(--line);
-      color: var(--muted);
-      font-size: 13px;
-      font-weight: 700;
-    }
-
     .row {
       display: grid;
-      grid-template-columns: minmax(0, 1.25fr) minmax(88px, .65fr) 74px;
+      grid-template-columns: minmax(0, 1.2fr) minmax(74px, .55fr) minmax(88px, .65fr) 74px;
       gap: 8px;
       align-items: center;
       padding: 11px 12px;
       border-bottom: 1px solid var(--line);
     }
 
-    .row:last-child {
-      border-bottom: 0;
-    }
+    .row:last-child { border-bottom: 0; }
 
-    .prop {
-      min-width: 0;
-      overflow-wrap: anywhere;
-      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-      font-size: 13px;
-    }
-
+    .prop,
+    .expected,
     .value {
       min-width: 0;
       overflow-wrap: anywhere;
       font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-      color: var(--muted);
       font-size: 13px;
     }
+
+    .expected,
+    .value { color: var(--muted); }
 
     .status {
       justify-self: end;
@@ -171,17 +165,9 @@
       white-space: nowrap;
     }
 
-    .ok {
-      color: var(--ok);
-    }
-
-    .bad {
-      color: var(--bad);
-    }
-
-    .warn {
-      color: var(--warn);
-    }
+    .ok { color: var(--ok); }
+    .bad { color: var(--bad); }
+    .warn { color: var(--warn); }
 
     .foot {
       margin: 12px 2px 0;
@@ -190,23 +176,13 @@
       line-height: 1.45;
     }
 
-    @media (max-width: 520px) {
-      main {
-        padding: 14px 10px 22px;
-      }
-
-      .summary {
-        grid-template-columns: 1fr;
-      }
-
-      .row {
-        grid-template-columns: 1fr auto;
-      }
-
-      .value {
-        grid-column: 1 / -1;
-        grid-row: 2;
-      }
+    @media (max-width: 560px) {
+      main { padding: 14px 10px 22px; }
+      header { align-items: flex-start; }
+      .summary { grid-template-columns: 1fr; }
+      .row { grid-template-columns: 1fr auto; }
+      .expected,
+      .value { grid-column: 1 / -1; }
     }
   </style>
 </head>
@@ -217,7 +193,10 @@
         <h1>Hide Unlocked</h1>
         <div class="meta">KernelSU / SukiSU Ultra · v1.0</div>
       </div>
-      <button id="refresh" type="button">刷新</button>
+      <div class="actions">
+        <button id="repair" type="button" disabled>重新执行</button>
+        <button id="refresh" type="button">刷新</button>
+      </div>
     </header>
 
     <section class="summary" aria-label="prop summary">
@@ -231,50 +210,30 @@
   </main>
 
   <script type="module">
-    const groups = [
-      {
-        title: "启动与 AVB",
-        props: [
-          ["ro.boot.flash.locked", "1"],
-          ["ro.boot.vbmeta.device_state", "locked"],
-          ["ro.boot.verifiedbootstate", "green"],
-          ["ro.boot.veritymode", "enforcing"],
-          ["ro.boot.verifiedmode", "enforcing"],
-          ["vendor.boot.vbmeta.device_state", "locked"],
-          ["vendor.boot.verifiedbootstate", "green"],
-          ["vendor.boot.veritymode", "enforcing"]
-        ]
-      },
-      {
-        title: "构建与调试",
-        props: [
-          ["ro.build.tags", "release-keys"],
-          ["ro.build.type", "user"],
-          ["ro.debuggable", "0"],
-          ["ro.secure", "1"]
-        ]
-      },
-      {
-        title: "OEM 与保修",
-        props: [
-          ["sys.oem_unlock_allowed", "0"],
-          ["ro.oem_unlock_supported", "1"],
-          ["ro.boot.warranty_bit", "0"],
-          ["ro.vendor.boot.warranty_bit", "0"],
-          ["ro.vendor.warranty_bit", "0"],
-          ["ro.warranty_bit", "0"],
-          ["ro.secureboot.devicelock", "1"],
-          ["ro.secureboot.lockstate", "locked"]
-        ]
-      },
-      {
-        title: "启动模式",
-        props: [
-          ["ro.bootmode", "unknown"],
-          ["ro.boot.mode", "unknown"],
-          ["vendor.boot.mode", "unknown"]
-        ]
-      }
+    const checks = [
+      ["ro.boot.flash.locked", "1"],
+      ["ro.boot.vbmeta.device_state", "locked"],
+      ["ro.boot.verifiedbootstate", "green"],
+      ["ro.boot.veritymode", "enforcing"],
+      ["ro.boot.verifiedmode", "enforcing"],
+      ["vendor.boot.vbmeta.device_state", "locked"],
+      ["vendor.boot.verifiedbootstate", "green"],
+      ["vendor.boot.veritymode", "enforcing"],
+      ["ro.build.tags", "release-keys"],
+      ["ro.build.type", "user"],
+      ["ro.debuggable", "0"],
+      ["ro.secure", "1"],
+      ["sys.oem_unlock_allowed", "0"],
+      ["ro.oem_unlock_supported", "1"],
+      ["ro.boot.warranty_bit", "0"],
+      ["ro.vendor.boot.warranty_bit", "0"],
+      ["ro.vendor.warranty_bit", "0"],
+      ["ro.warranty_bit", "0"],
+      ["ro.secureboot.devicelock", "1"],
+      ["ro.secureboot.lockstate", "locked"],
+      ["ro.bootmode", "unknown"],
+      ["ro.boot.mode", "unknown"],
+      ["vendor.boot.mode", "unknown"]
     ];
 
     const content = document.querySelector("#content");
@@ -283,8 +242,10 @@
     const badCount = document.querySelector("#bad-count");
     const allCount = document.querySelector("#all-count");
     const refresh = document.querySelector("#refresh");
+    const repair = document.querySelector("#repair");
 
     let execApi = null;
+    let failedChecks = [];
 
     async function loadApi() {
       if (execApi) return execApi;
@@ -307,11 +268,11 @@
       })[char]);
     }
 
-    async function getProp(prop) {
+    async function run(command) {
       const exec = await loadApi();
-      const result = await exec("getprop " + shellQuote(prop));
+      const result = await exec(command);
       if (result.errno && result.errno !== 0) {
-        throw new Error(result.stderr || "getprop failed");
+        throw new Error(result.stderr || command + " failed");
       }
       return (result.stdout || "").trim();
     }
@@ -324,6 +285,7 @@
       return `
         <div class="row">
           <div class="prop">${escapeHtml(prop)}</div>
+          <div class="expected">${escapeHtml(expected)}</div>
           <div class="value">${escapeHtml(actual || "(empty)")}</div>
           <div class="status ${statusClass}">${statusText}</div>
         </div>
@@ -332,40 +294,64 @@
 
     async function render() {
       refresh.disabled = true;
+      repair.disabled = true;
       message.textContent = "正在读取属性...";
+      failedChecks = [];
+      const rows = [];
       let ok = 0;
       let bad = 0;
-      const html = [];
 
       try {
-        for (const group of groups) {
-          html.push(`<section class="section"><div class="section-title">${group.title}</div>`);
-          for (const [prop, expected] of group.props) {
-            const actual = await getProp(prop);
-            if (actual === expected) ok += 1;
-            else bad += 1;
-            html.push(row(prop, expected, actual));
+        for (const [prop, expected] of checks) {
+          const actual = await run("getprop " + shellQuote(prop));
+          if (actual === expected) {
+            ok += 1;
+          } else {
+            bad += 1;
+            failedChecks.push([prop, expected]);
           }
-          html.push("</section>");
+          rows.push(row(prop, expected, actual));
         }
 
-        content.innerHTML = html.join("");
+        content.innerHTML = `<section class="list">${rows.join("")}</section>`;
         okCount.textContent = String(ok);
         badCount.textContent = String(bad);
-        allCount.textContent = String(ok + bad);
-        message.textContent = "最后刷新：" + new Date().toLocaleString();
+        allCount.textContent = String(checks.length);
+        repair.disabled = failedChecks.length === 0;
+        message.textContent = failedChecks.length === 0
+          ? "全部检测项符合预期 · " + new Date().toLocaleString()
+          : "有项目不符合预期，可重新执行一次 · " + new Date().toLocaleString();
       } catch (error) {
         content.innerHTML = "";
         okCount.textContent = "0";
         badCount.textContent = "0";
-        allCount.textContent = String(groups.reduce((sum, group) => sum + group.props.length, 0));
+        allCount.textContent = String(checks.length);
         message.textContent = "无法读取属性，请从支持 WebUI 的 KernelSU/SukiSU Ultra Manager 打开。";
       } finally {
         refresh.disabled = false;
       }
     }
 
+    async function repairFailed() {
+      if (failedChecks.length === 0) return;
+      refresh.disabled = true;
+      repair.disabled = true;
+      message.textContent = "正在重新执行异常项...";
+
+      try {
+        for (const [prop, expected] of failedChecks) {
+          await run("resetprop " + shellQuote(prop) + " " + shellQuote(expected));
+        }
+        await render();
+      } catch (error) {
+        message.textContent = "重新执行失败：" + (error.message || "unknown error");
+        refresh.disabled = false;
+        repair.disabled = false;
+      }
+    }
+
     refresh.addEventListener("click", render);
+    repair.addEventListener("click", repairFailed);
     render();
   </script>
 </body>
