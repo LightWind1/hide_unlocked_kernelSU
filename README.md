@@ -1,6 +1,6 @@
 # Hide Unlocked for KernelSU / SukiSU Ultra
 
-This module masks common Android bootloader and verified-boot properties so
+This module masks existing Android bootloader and verified-boot properties so
 apps that only read Android system properties see a locked, green, user build.
 
 It is intended for KernelSU and SukiSU Ultra. It does not modify the real
@@ -17,9 +17,10 @@ boot properties such as:
 - `ro.boot.verifiedbootstate`
 - `ro.boot.veritymode`
 
-KernelSU can still load `system.prop` with `resetprop -n` and execute module
-boot scripts, so this module can still affect property-only checks on Android
-15+ when KernelSU or SukiSU Ultra is active during boot.
+KernelSU can still execute module boot scripts, so this module can still affect
+property-only checks on Android 15+ when KernelSU or SukiSU Ultra is active
+during boot. The module intentionally avoids static `system.prop` assignments
+and only changes properties that already exist with mismatched values.
 
 Limitations:
 
@@ -47,7 +48,7 @@ the current value and match status for each masked property.
 After reboot, run:
 
 ```sh
-su -c 'getprop | grep -E "flash.locked|vbmeta.device_state|verifiedbootstate|veritymode|warranty_bit|secureboot|oem_unlock|build.type|build.tags|debuggable|ro.secure"'
+su -c 'getprop | grep -E "flash.locked|vbmeta.device_state|verifiedbootstate|veritymode|warranty_bit|secureboot|oem_unlock|bootmode|realme|build.type|build.tags|debuggable|adb.secure|ro.secure"'
 ```
 
 Expected highlights:
@@ -59,10 +60,13 @@ Expected highlights:
 - `ro.build.type=user`
 - `ro.build.tags=release-keys`
 - `ro.debuggable=0`
+- `ro.force.debuggable=0`
 - `ro.secure=1`
+- `ro.adb.secure=1`
 
 ## Notes
 
-The included property set is based on the original `hide_locked` module and
-cross-checked with Root-Masker. The module intentionally avoids system file
-replacement, so no OverlayFS/metamodule dependency is required.
+The included property set is based on the original `hide_locked` module,
+cross-checked with Root-Masker, and extended with Shamiko's adb/debug,
+bootmode, and Realme lock-state props. The module intentionally avoids system
+file replacement, so no OverlayFS/metamodule dependency is required.

@@ -1,6 +1,6 @@
 id=hide_unlocked_kernelsu
 name=Hide Unlocked for KernelSU
-version=v1.1
-versionCode=110
+version=v1.2
+versionCode=120
 author=LightWind1
-description=Mask common unlocked bootloader, AVB, warranty, and debug props for KernelSU / SukiSU Ultra. Property-only checks only; hardware attestation is not bypassed.
+description=Mask existing unlocked bootloader, AVB, warranty, adb/debug, and vendor lock props for KernelSU / SukiSU Ultra. Property-only checks only; hardware attestation is not bypassed.

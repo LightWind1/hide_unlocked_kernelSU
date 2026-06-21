@@ -1,35 +1,5 @@
-# Loaded by KernelSU/SukiSU with resetprop -n during early boot.
-# These values mask property-only bootloader and verified-boot checks.
-
-# Build state
-ro.build.tags=release-keys
-ro.build.type=user
-ro.debuggable=0
-ro.secure=1
-
-# Bootloader / AVB state
-ro.boot.flash.locked=1
-ro.boot.vbmeta.device_state=locked
-ro.boot.verifiedbootstate=green
-ro.boot.veritymode=enforcing
-ro.boot.verifiedmode=enforcing
-vendor.boot.vbmeta.device_state=locked
-vendor.boot.verifiedbootstate=green
-vendor.boot.veritymode=enforcing
-
-# OEM unlock UI/state hints
-sys.oem_unlock_allowed=0
-ro.oem_unlock_supported=1
-
-# Samsung / Knox style warranty props
-ro.boot.warranty_bit=0
-ro.vendor.boot.warranty_bit=0
-ro.vendor.warranty_bit=0
-ro.warranty_bit=0
-
-# Misc lock/debug props seen by root-detection libraries
-ro.secureboot.devicelock=1
-ro.secureboot.lockstate=locked
-ro.bootmode=unknown
-ro.boot.mode=unknown
-vendor.boot.mode=unknown
+# Intentionally left without property assignments.
+#
+# This module only changes properties that already exist and have a mismatched
+# value. Conditional checks live in post-fs-data.sh and service.sh; using static
+# system.prop entries would create missing properties during early boot.
